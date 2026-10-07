@@ -120,7 +120,11 @@ LB_BANDS = [(1, 4), (4, 8), (8, 13), (13, 20), (20, 31.25)]
 
 
 def S_(w):
-    return stft(w, CFG.eval_n_fft, CFG.eval_hop)
+    """Evaluation STFT, frames lying wholly inside the signal only: lisa_eeg.stft zero-pads both ends, and the
+    silent padded frames would otherwise make log-energy of silence 'predict' log-energy of silence."""
+    S = stft(w, CFG.eval_n_fft, CFG.eval_hop)
+    st = np.arange(S.shape[0]) * CFG.eval_hop
+    return S[(st >= CFG.eval_n_fft) & (st + CFG.eval_n_fft <= CFG.eval_n_fft + len(w))]
 
 
 def hb_frame_logE(S):
@@ -170,9 +174,9 @@ def run_model(m, x_lo, n, tau, gen):
     return m(xt, eps=eps)[0].numpy().astype(np.float64)[:n]
 
 
-def score(prep, meta, out, n_ch=4, chunks=(0, 2, 4), L=7500):
+def score(prep, meta, out, n_ch=4, chunks=(0, 2, 4), L=7500, limit=None):
     torch.set_num_threads(4)
-    tj = json.load(open(out / "train.json")); te = tj["test"]
+    tj = json.load(open(out / "train.json")); te = tj["test"][:limit]
     _, _, lab = split(prep, meta)
     models = {}
     for k in ARMS:
@@ -225,21 +229,30 @@ def score(prep, meta, out, n_ch=4, chunks=(0, 2, 4), L=7500):
                         row["crps"] = row["crps_fair"] = crps_ensemble(logmag(S_(D[0]))[None][:, :, HBK], truth_lm)
                     rows.append(row)
         print(f"  [{time.time()-t0:5.0f}s] {si+1}/{len(te)} {sub} ({lab[sub]})", flush=True)
-    # envelope predictability from the low band alone (no model): ridge on training-lab frames, R^2 on test frames
-    tr = tj["train"]; rng2 = np.random.default_rng(11); Xtr, ytr = [], []
+    # envelope predictability from the low band alone (no model): ridge on training-subject frames, R^2 on test
+    # frames. Two fits: pooled (level differences between recordings included), and within-recording (features
+    # and target demeaned per recording, so only the frame-to-frame envelope is scored).
+    tr = tj["train"]; rng2 = np.random.default_rng(11); Xtr, ytr, gtr = [], [], []
     for sub in tr[::3]:
         for yfull in channels(prep, sub, 2, rng2):
-            y = yfull[:L]; y = y / (decimate(y).std() + 1e-9); S = S_(y)
-            Xtr.append(lb_feats(S)); ytr.append(hb_frame_logE(S))
-    Xtr, ytr = np.concatenate(Xtr), np.concatenate(ytr)
-    A = np.c_[Xtr, np.ones(len(Xtr))]; beta = np.linalg.solve(A.T @ A + 1e-3 * np.eye(A.shape[1]), A.T @ ytr)
+            for c in chunks:
+                y = yfull[c * L:(c + 1) * L]; y = y / (decimate(y).std() + 1e-9); S = S_(y)
+                Xtr.append(lb_feats(S)); ytr.append(hb_frame_logE(S)); gtr.append(np.full(S.shape[0], len(gtr)))
+    Xtr, ytr, gtr = np.concatenate(Xtr), np.concatenate(ytr), np.concatenate(gtr)
     Xte, yte = np.concatenate(lbf), np.concatenate(env["truth"])
-    pred = np.c_[Xte, np.ones(len(Xte))] @ beta
     item_id = np.concatenate([np.full(len(e), i) for i, e in enumerate(env["truth"])])
-    dm = lambda v: v - pd.Series(v).groupby(item_id).transform("mean").values
+    dmg = lambda v, g: v - pd.DataFrame(v).groupby(g).transform("mean").values.reshape(v.shape)
+
+    def ridge(X, y):
+        A = np.c_[X, np.ones(len(X))]
+        return np.linalg.solve(A.T @ A + 1e-3 * np.eye(A.shape[1]), A.T @ y)
+    b_pool = ridge(Xtr, ytr); pred = np.c_[Xte, np.ones(len(Xte))] @ b_pool
+    b_wi = ridge(dmg(Xtr, gtr), dmg(ytr, gtr)); yw, pw = dmg(yte, item_id), np.c_[dmg(Xte, item_id), np.ones(len(Xte))] @ b_wi
     env_pred = {"r2_pooled": float(1 - np.var(yte - pred) / np.var(yte)),
-                "r2_within_item": float(1 - np.var(dm(yte) - dm(pred)) / np.var(dm(yte))),
-                "r_within_item": float(np.corrcoef(dm(yte), dm(pred))[0, 1]), "n_frames": int(len(yte))}
+                "r2_within_recording": float(1 - np.var(yw - pw) / np.var(yw)),
+                "r_within_recording": float(np.corrcoef(yw, pw)[0, 1]), "n_frames": int(len(yte)),
+                "n_train_frames": int(len(ytr))}
+    dm = lambda v: v - pd.Series(v).groupby(item_id).transform("mean").values
     env_reg = {}
     t = np.concatenate(env["truth"])
     for name in env:
@@ -257,7 +270,9 @@ def score(prep, meta, out, n_ch=4, chunks=(0, 2, 4), L=7500):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    steps = 6000
+    steps, limit = 6000, None
+    if "--limit" in a:
+        i = a.index("--limit"); limit = int(a[i + 1]); del a[i:i + 2]
     if "--steps" in a:
         i = a.index("--steps"); steps = int(a[i + 1]); del a[i:i + 2]
     cmd, prep, meta, out = a[0], pathlib.Path(a[1]), pathlib.Path(a[2]), pathlib.Path(a[3])
@@ -265,4 +280,4 @@ if __name__ == "__main__":
     if cmd == "train":
         train(prep, meta, out, steps)
     elif cmd == "score":
-        score(prep, meta, out)
+        score(prep, meta, out, limit=limit)

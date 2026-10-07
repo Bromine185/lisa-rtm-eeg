@@ -62,11 +62,15 @@ def fig_bwe(res, out):
     a.axhline(0, color=MUTED, lw=1); b.axhline(0, color=MUTED, lw=1)
     a.set_xscale("log"); b.set_xscale("log")
     for ax in (a, b):
-        ax.set_xticks([31.5, 40, 50, 63, 80, 100, 125], ["31.5", "40", "50", "63", "80", "100", "125"]); ax.set_xlabel("third-octave band centre (Hz)")
+        ax.set_xticks([31.5, 40, 50, 63, 80, 100, 125], ["31.5", "40", "50", "63", "80", "100", "125"])
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter()); ax.set_xlabel("third-octave band centre (Hz)")
     a.set_ylabel("output / true energy (dB)"); a.set_title("Deficit: high-band level, held-out subjects")
     b.set_ylabel("coherent fraction c"); b.set_title("Coherent fraction: how much is predicted")
-    a.legend(loc="lower left", fontsize=8.5)
-    fig.tight_layout(); fig.savefig(out / "fig2_bwe.png", dpi=150); plt.close(fig)
+    b.annotate("31-40 Hz: low-band leakage across\nthe cut-off (even the noise arm)", (35.1, 0.065), xytext=(48, 0.08),
+               fontsize=8.5, color=INK2, arrowprops=dict(arrowstyle="-", color=MUTED, lw=1))
+    h, l = a.get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=4, fontsize=8.5, bbox_to_anchor=(0.5, 0.0))
+    fig.tight_layout(rect=(0, 0.07, 1, 1)); fig.savefig(out / "fig2_bwe.png", dpi=150); plt.close(fig)
 
 
 def fig_predictability(res, out):
@@ -131,10 +135,11 @@ def fig_predict(res, out):
 
 def main():
     res, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]); out.mkdir(parents=True, exist_ok=True)
-    for fn, need in ((fig_cda, "cda_waves.npz"), (fig_bwe, "score_rows.json"), (fig_predictability, "coherence.tsv"),
-                     (fig_spatial, "spatial_summary.json"), (fig_predict, "lolo_cda46.tsv")):
-        if (res / need).exists():
-            fn(res, out); print("wrote", fn.__name__)
+    for fn, sub, need in ((fig_cda, "", "cda_waves.npz"), (fig_bwe, "bwe", "score_rows.json"),
+                          (fig_predictability, "", "coherence.tsv"), (fig_spatial, "", "spatial_summary.json"),
+                          (fig_predict, "", "lolo_cda46.tsv")):
+        if (res / sub / need).exists():
+            fn(res / sub, out); print("wrote", fn.__name__)
 
 
 if __name__ == "__main__":

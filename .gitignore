@@ -1,5 +1,3 @@
 __pycache__/
 *.pt
-*.npz
-!results/*.npz
-data/
+!results/bwe/*.pt
