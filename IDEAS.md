@@ -126,3 +126,13 @@ good.
    modulation? Needs the excerpt's low-frequency content, which our 0.5 Hz high-pass limits.
 5. **Is the between-lab CDA difference hardware?** Most of it is behaviour (the labs differ in attention), but
    the ROI composition does differ by montage.
+
+## Overnight results (2026-10-08)
+
+- Engagement states (2-state HMM, `src/ideas/hmm_states.py`): no held-out gain over i.i.d. (+0.0009/trial); CDA unchanged in disengaged stretches (t = 0.04). Weakens the engagement headline: the 2-item attention score is not momentary engagement.
+- Spectral traits (`src/ideas/spectral.py`): 1/f exponent, offset, alpha frequency and power, alpha DFA, HF floor: none predicts K within lab (|r| <= 0.11).
+- Hysteresis replication (`src/ideas/extra.py`): same sign in 9/10 labs; significant in one random half (p < 0.001), not the other (p = 0.50). Suggestive.
+- Capacity as a bifurcation: no variability peak at load = K (p = 0.12).
+- Depletion: recent load does not predict errors beyond time on task (p = 0.085).
+
+The data explorer dashboard reads `dashboard_data/*.json` (built by `src/dashboard_export.py`); its page is `dashboard/`.

@@ -1,0 +1,296 @@
+<style>
+.ex { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+.ex-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+.ex-head p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
+.ex-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); padding-bottom: var(--cds-gap-xs); }
+.ex-tabs button { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 1px solid transparent; border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); color: var(--color-fg-muted); cursor: pointer; }
+.ex-tabs button[aria-selected="true"] { color: var(--color-fg); border-color: var(--color-border-line); background: var(--color-panel); }
+.ex-tabs button:focus-visible { outline: 2px solid var(--color-fg); }
+.ex-page { display: grid; gap: var(--cds-gap-md); }
+.ex-page[hidden] { display: none; }
+.ex-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.ex-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; position: relative; }
+.ex-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.ex-card .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: var(--cds-gap-xs) 0 var(--cds-gap-sm); max-width: 75ch; }
+.ex-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); }
+.ex-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.ex-tile .lbl { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ex-tile .big { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+.ex-chart { min-height: 260px; }
+.ex-chart.tall { min-height: 320px; }
+.ex-ctrl { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+.ex-ctrl select, .ex-ctrl input { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); max-width: 100%; }
+.ex-tablebox { max-height: 28rem; overflow: auto; }
+.ex-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.ex-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); white-space: nowrap; cursor: pointer; }
+.ex-table td { border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); white-space: nowrap; }
+.ex-table td.wrap { white-space: normal; min-width: 14rem; }
+.ex-table tbody tr[data-key] { cursor: pointer; }
+.ex-table tbody tr.sel { background: var(--color-bg); outline: 1px solid var(--color-fg-muted); }
+.ex-table td.num, .ex-table th.num { text-align: right; }
+.ex-dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-sm); margin: 0; }
+.ex-dl div { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+.ex-dl dt { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ex-dl dd { margin: 0; font-variant-numeric: tabular-nums; }
+.ex-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); z-index: 5; white-space: nowrap; }
+.ex-tip .h { color: var(--cds-text-secondary); }
+.ex-tip i { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; margin-right: 0.35rem; }
+.ex-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ex-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; margin-right: 0.3rem; vertical-align: -1px; }
+.ex svg text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.ex .fail { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 120px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ex .fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="ex">
+  <header class="ex-head">
+    <h1 id="title">EEGManyLabs working-memory data</h1>
+    <p id="takeaway" class="dash-skeleton">—</p>
+  </header>
+
+  <nav class="ex-tabs" role="tablist" aria-label="Pages">
+    <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button role="tab" data-tab="labs" aria-selected="false">Labs</button>
+    <button role="tab" data-tab="behaviour" aria-selected="false">Behaviour</button>
+    <button role="tab" data-tab="cda" aria-selected="false">CDA</button>
+    <button role="tab" data-tab="subjects" aria-selected="false">Subjects</button>
+    <button role="tab" data-tab="spectra" aria-selected="false">Spectra</button>
+    <button role="tab" data-tab="analyses" aria-selected="false">Analyses</button>
+    <button role="tab" data-tab="ideas" aria-selected="false">Ideas</button>
+  </nav>
+
+  <!-- ===================================================== OVERVIEW -->
+  <section class="ex-page" id="overview">
+    <div class="ex-tiles">
+      <div class="ex-tile"><div class="lbl">Participants recorded</div><div class="big dash-skeleton" data-source="totals" data-field="value" data-where="metric=participants">—</div></div>
+      <div class="ex-tile"><div class="lbl">Analysed after quality checks</div><div class="big dash-skeleton" data-source="totals" data-field="value" data-where="metric=analysed">—</div></div>
+      <div class="ex-tile"><div class="lbl">Labs</div><div class="big dash-skeleton" data-source="totals" data-field="value" data-where="metric=labs">—</div></div>
+      <div class="ex-tile"><div class="lbl">Trials in the analysed set</div><div class="big dash-skeleton" data-source="totals" data-field="value" data-where="metric=trials">—</div></div>
+    </div>
+    <div class="ex-card" id="ov-cda-card">
+      <h2>The CDA: the brain signal this dataset is about</h2>
+      <p class="note">Contralateral minus ipsilateral voltage over posterior scalp, averaged over all analysed people, for 2, 4 and 6 remembered squares. The shaded window (300–900 ms) is where its amplitude is measured. Bigger (more negative) means more held in memory.</p>
+      <div class="ex-chart tall" id="ov-cda" data-source="cda_lab_waves"></div>
+    </div>
+    <div class="ex-grid">
+      <div class="ex-card" id="ov-eng-card">
+        <h2>Labs differ in attention, and that is their capacity</h2>
+        <p class="note">Each dot is a lab. Attention = accuracy-based share of 2-item trials actually encoded; capacity K = Cowan's K at 4 and 6 items. Lab means of analysed people.</p>
+        <div class="ex-chart" id="ov-eng" data-source="labs"></div>
+      </div>
+      <div class="ex-card" id="ov-ideas-card">
+        <h2>Headline numbers from the tested ideas</h2>
+        <p class="note">Full list with test statistics on the Ideas tab.</p>
+        <dl class="ex-dl" id="ov-ideas"></dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== LABS -->
+  <section class="ex-page" id="labs" hidden>
+    <div class="ex-card" id="labs-table-card">
+      <h2>The ten labs</h2>
+      <p class="note">Recording set-up from each lab's BIDS sidecars; behaviour and CDA are means of analysed people. CDA in µV, 300–900 ms. Click a header to sort.</p>
+      <div class="ex-tablebox">
+        <table class="ex-table" id="labs-table" data-source="labs" data-row-key="lab">
+          <thead><tr>
+            <th data-field="lab">Lab</th><th data-field="n" class="num">People</th><th data-field="included" class="num">Analysed</th>
+            <th data-field="system">System</th><th data-field="fs" class="num">Rate (Hz)</th><th data-field="n_eeg">EEG channels</th>
+            <th data-field="reference">Reference</th><th data-field="eye_channel">Eye channel</th><th data-field="age" class="num">Mean age</th>
+            <th data-field="acc" class="num">Accuracy</th><th data-field="attention" class="num">Attention</th><th data-field="K" class="num">K</th>
+            <th data-field="cda2" class="num">CDA 2</th><th data-field="cda4" class="num">CDA 4</th><th data-field="cda6" class="num">CDA 6</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ex-grid">
+      <div class="ex-card" id="labs-n-card">
+        <h2>People per lab, and how many were analysed</h2>
+        <p class="note">Excluded: fewer than half the trials clean of eye movements and artefacts, accuracy below 0.6, or fewer than 30 clean trials at a set size.</p>
+        <div class="ex-chart" id="labs-n" data-source="labs"></div>
+      </div>
+      <div class="ex-card" id="labs-cdak-card">
+        <h2>Lab CDA against lab capacity</h2>
+        <p class="note">Lab means: CDA averaged over 4 and 6 items (µV) against K. Across labs this correlation is strong; within labs it is weak (see Analyses).</p>
+        <div class="ex-chart" id="labs-cdak" data-source="labs"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== BEHAVIOUR -->
+  <section class="ex-page" id="behaviour" hidden>
+    <div class="ex-ctrl"><label for="beh-lab">Highlight lab</label><select id="beh-lab" data-source="labs"></select></div>
+    <div class="ex-grid">
+      <div class="ex-card" id="beh-acc-card">
+        <h2>Accuracy by set size</h2>
+        <p class="note">Share of trials answered correctly, all people recorded. One line per lab; the highlighted lab in colour.</p>
+        <div class="ex-chart" id="beh-acc" data-source="lab_setsize"></div>
+      </div>
+      <div class="ex-card" id="beh-rt-card">
+        <h2>Response time by set size</h2>
+        <p class="note">Median seconds from test array to response.</p>
+        <div class="ex-chart" id="beh-rt" data-source="lab_setsize"></div>
+      </div>
+      <div class="ex-card" id="beh-tot-card">
+        <h2>Accuracy over the session</h2>
+        <p class="note">Five-minute bins from the first trial. Everyone improves over the first 20 minutes.</p>
+        <div class="ex-chart" id="beh-tot" data-source="time_on_task"></div>
+      </div>
+      <div class="ex-card" id="beh-alpha-card">
+        <h2>Pre-trial alpha over the session</h2>
+        <p class="note">Log posterior alpha power in the 500 ms before each memory array, relative to each person's own mean per set size. It rises with time on task.</p>
+        <div class="ex-chart" id="beh-alpha" data-source="time_on_task"></div>
+      </div>
+      <div class="ex-card" id="beh-k-card">
+        <h2>Capacity K of every person</h2>
+        <p class="note">Each dot one analysed person (mean of K at 4 and 6 items), grouped by lab. The highlighted lab in colour.</p>
+        <div class="ex-chart tall" id="beh-k" data-source="subjects"></div>
+      </div>
+      <div class="ex-card" id="beh-eye-card">
+        <h2>Eye drift toward the remembered side</h2>
+        <p class="note">Horizontal eye signal (µV, toward the cued side) during the delay, by set size. It follows the CDA's shape: up from 2 to 4, flat to 6.</p>
+        <div class="ex-chart" id="beh-eye" data-source="lab_setsize"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== CDA -->
+  <section class="ex-page" id="cda" hidden>
+    <div class="ex-ctrl"><label for="cda-lab">Lab</label><select id="cda-lab" data-source="labs"></select></div>
+    <div class="ex-card" id="cda-wave-card">
+      <h2>CDA waveform by set size</h2>
+      <p class="note">Mean ± standard error over the lab's analysed people, contralateral minus ipsilateral, µV.</p>
+      <div class="ex-chart tall" id="cda-wave" data-source="cda_lab_waves"></div>
+    </div>
+    <div class="ex-grid">
+      <div class="ex-card" id="cda-hist-card">
+        <h2>A single trial's CDA is mostly noise</h2>
+        <p class="note">Distribution of single-trial CDA amplitudes (µV, 300–900 ms, clean trials). The averaged effect is under 1 µV; single trials spread over tens.</p>
+        <div class="ex-chart" id="cda-hist" data-source="cda_hist"></div>
+      </div>
+      <div class="ex-card" id="cda-coh-card">
+        <h2>How much of one trial the average predicts</h2>
+        <p class="note">Coherent fraction by frequency: the share of a single trial's lateralized energy that the leave-one-out average of its condition captures. Almost all of it sits below 4 Hz.</p>
+        <div class="ex-chart" id="cda-coh" data-source="coherence_spectrum"></div>
+      </div>
+      <div class="ex-card" id="cda-lab-card">
+        <h2>CDA by set size in each lab</h2>
+        <p class="note">Mean single-trial CDA (µV) at 2, 4 and 6 items, clean trials.</p>
+        <div class="ex-chart" id="cda-labss" data-source="lab_setsize"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== SUBJECTS -->
+  <section class="ex-page" id="subjects" hidden>
+    <div class="ex-card" id="sub-dossier-card">
+      <h2 id="sub-name">Person</h2>
+      <p class="note">Pick a row in the table below. Their CDA waveforms, spectrum and every number computed for them.</p>
+      <div class="ex-grid">
+        <div class="ex-chart" id="sub-wave" data-source="cda_subject_waves"></div>
+        <div class="ex-chart" id="sub-psd" data-source="psd_subjects lab_psd"></div>
+      </div>
+      <dl class="ex-dl" id="sub-dl"></dl>
+    </div>
+    <div class="ex-card" id="sub-table-card">
+      <h2>All 304 people</h2>
+      <div class="ex-ctrl">
+        <label for="sub-lab">Lab</label><select id="sub-lab" data-source="labs"></select>
+        <label for="sub-q">Search</label><input id="sub-q" type="search" placeholder="sub-Voge0001">
+        <label for="sub-inc">Show</label><select id="sub-inc"><option value="all">Everyone</option><option value="in">Analysed</option><option value="out">Excluded</option></select>
+      </div>
+      <div class="ex-tablebox">
+        <table class="ex-table" id="sub-table" data-source="subjects" data-row-key="sub">
+          <thead><tr>
+            <th data-field="sub">Person</th><th data-field="lab">Lab</th><th data-field="excluded">Excluded</th><th data-field="reason">Why</th>
+            <th data-field="kept" class="num">Clean trials</th><th data-field="acc" class="num">Accuracy</th><th data-field="K" class="num">K</th>
+            <th data-field="attention" class="num">Attention</th><th data-field="cda2" class="num">CDA 2</th><th data-field="cda4" class="num">CDA 4</th>
+            <th data-field="cda6" class="num">CDA 6</th><th data-field="alpha_lat" class="num">Alpha lat.</th><th data-field="c_time" class="num">Coherent frac.</th>
+            <th data-field="exponent" class="num">1/f exponent</th><th data-field="iaf" class="num">Alpha freq.</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== SPECTRA -->
+  <section class="ex-page" id="spectra" hidden>
+    <div class="ex-ctrl"><label for="sp-lab">Highlight lab</label><select id="sp-lab" data-source="labs"></select></div>
+    <div class="ex-card" id="sp-psd-card">
+      <h2>Power spectrum by lab, as recorded</h2>
+      <p class="note">Median over the lab's people of the channel-median power spectrum at each lab's native rate, before line-noise notches, log10 µV²/Hz, 1–125 Hz. Hardware filters and mains noise (50 or 60 Hz) show here.</p>
+      <div class="ex-chart tall" id="sp-psd" data-source="lab_psd"></div>
+    </div>
+    <div class="ex-grid">
+      <div class="ex-card" id="sp-exp-card">
+        <h2>1/f exponent against capacity</h2>
+        <p class="note">Each dot one analysed person: aperiodic exponent of the posterior spectrum (2–40 Hz, specparam) against K. No relation within labs.</p>
+        <div class="ex-chart" id="sp-exp" data-source="subjects"></div>
+      </div>
+      <div class="ex-card" id="sp-iaf-card">
+        <h2>Individual alpha frequency</h2>
+        <p class="note">Peak alpha frequency (Hz) of each analysed person, grouped by lab.</p>
+        <div class="ex-chart" id="sp-iaf" data-source="subjects"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== ANALYSES -->
+  <section class="ex-page" id="analyses" hidden>
+    <div class="ex-grid">
+      <div class="ex-card" id="an-pred-card">
+        <h2>Forecasting capacity in an unseen lab</h2>
+        <p class="note">CRPS skill over a forecast that knows nothing (left out one lab at a time). "Centred in lab" removes lab differences; "lab only" knows just the lab's mean.</p>
+        <div class="ex-chart" id="an-pred" data-source="predict"></div>
+      </div>
+      <div class="ex-card" id="an-spat-card">
+        <h2>Predicting a missing electrode</h2>
+        <p class="note">Median coherent fraction (share predicted) by frequency band for three interpolators. Low frequencies are almost fully predictable; above 30 Hz about half.</p>
+        <div class="ex-chart" id="an-spat" data-source="spatial"></div>
+      </div>
+      <div class="ex-card" id="an-spatp-card">
+        <h2>…and the level each one outputs</h2>
+        <p class="note">Output energy / true energy. The best averaging map (Wiener) goes quiet by exactly its coherent fraction; one Gaussian draw keeps the level at 1.</p>
+        <div class="ex-chart" id="an-spatp" data-source="spatial"></div>
+      </div>
+      <div class="ex-card" id="an-bwe-card">
+        <h2>lisa-rtm's network on EEG: high-band level</h2>
+        <p class="note">Rebuilding 31–125 Hz from 0–31 Hz on held-out people. Output / true energy per band, dB; 0 is the right level.</p>
+        <div class="ex-chart" id="an-bwe" data-source="bwe"></div>
+      </div>
+    </div>
+    <div class="ex-card" id="an-bwe-table-card">
+      <h2>Bandwidth-extension scores</h2>
+      <p class="note">Deficit and coherent fraction (above 40 Hz) of the high band, SNR of the whole signal, CRPS of high-band log magnitude (lower is better).</p>
+      <div class="ex-tablebox">
+        <table class="ex-table" id="bwe-table" data-source="bwe" data-row-key="condition">
+          <thead><tr><th data-field="condition">Model</th><th data-field="deficit" class="num">Deficit dB</th><th data-field="coh_above_40" class="num">Coherent frac. &gt;40 Hz</th>
+          <th data-field="snr" class="num">SNR dB</th><th data-field="crps" class="num">CRPS</th><th data-field="loud" class="num">Loud frames dB</th><th data-field="quiet" class="num">Quiet frames dB</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== IDEAS -->
+  <section class="ex-page" id="ideas" hidden>
+    <div class="ex-card" id="ideas-card">
+      <h2>Every tested idea, every number</h2>
+      <p class="note">One row per headline statistic. t and p from tests across people (or across labs where the test says so). Exploratory: no correction across the whole list.</p>
+      <div class="ex-tablebox">
+        <table class="ex-table" id="ideas-table" data-source="ideas" data-row-key="test">
+          <thead><tr><th data-field="idea">Idea</th><th data-field="test">Test</th><th data-field="value" class="num">Value</th><th data-field="unit">Unit</th>
+          <th data-field="t" class="num">t</th><th data-field="p" class="num">p</th><th data-field="note">Note</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="charts.js"></script>
+<script src="app.js"></script>
